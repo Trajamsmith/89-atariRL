@@ -8,7 +8,7 @@ gamma = 0.99  # Discounting factor
 alpha = 0.5  # soft update param
 
 env = gym.make("CartPole-v0")
-actions = range(env.action_space)
+actions = range(env.action_space.n)
 
 
 def update_Q(s, r, a, s_next, done):
@@ -49,7 +49,7 @@ class DiscretizedObservationWrapper(gym.ObservationWrapper):
 
 
 env = DiscretizedObservationWrapper(
-    env, n_bins=8, low=[-2.4, -2.0, -0.42, -3.5], high=[2.4, 2.0, 0.42, 3.5]
+    env, n_bins=8, low=np.array([-2.4, -2.0, -0.42, -3.5]), high=np.array([2.4, 2.0, 0.42, 3.5])
 )
 
 # -------------------------------------------------------------
@@ -60,7 +60,7 @@ epsilon = 0.1  # 10% chances to apply a random action
 
 
 def act(ob):
-    if np.random() < epsilon:
+    if np.random.rand() < epsilon:
         # action_space.sample() is a convenient function to get a random action
         # that is compatible with this given action space.
         return env.action_space.sample()
