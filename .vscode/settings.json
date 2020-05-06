@@ -1,3 +1,6 @@
 {
-    "python.pythonPath": "C:\\Users\\aoeuaoeu\\Anaconda3\\envs\\atari\\python.exe"
+    "python.pythonPath": "C:\\Users\\aoeuaoeu\\Anaconda3\\envs\\atari\\python.exe",
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true
 }
