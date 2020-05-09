@@ -7,7 +7,7 @@ import numpy as np
 class ReplayBuffer:
     def __init__(self, size=1000000, input_shape=(84, 84), history_length=4, use_per=True):
         """
-        Replay Buffer to store transitions.
+        Implements a Prioritized Experience Replay (PER) buffer to store transitions.
         This implementation was heavily inspired by Fabio M. Graetz's replay buffer
         here: https://github.com/fg91/Deep-Q-Learning/blob/master/DQN.ipynb
         Args:
@@ -31,7 +31,7 @@ class ReplayBuffer:
 
         self.use_per = use_per
 
-    def add_experience(self, action, frame, reward, terminal, clip_reward=True):
+    def add_experience(self, action: int, frame, reward: float, terminal: bool, clip_reward=True):
         """
         Saves a transition to the replay buffer
         Args:
