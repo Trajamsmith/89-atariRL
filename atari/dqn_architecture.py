@@ -5,8 +5,12 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, RMSprop
 
 
-def build_q_network(n_actions, learning_rate=0.00001, input_shape=(84, 84), history_length=4):
-    """Builds a dueling DQN as a Keras model
+def build_q_network(n_actions: int, learning_rate: float = 0.00001,
+                    input_shape: tuple = (84, 84), history_length: int = 4) -> Model:
+    """
+    Builds a dueling DQN as a Keras model. For a good overview of dueling
+    DQNs (and some motivation behind their use) see:
+    https://towardsdatascience.com/dueling-deep-q-networks-81ffab672751
     Arg:
         n_actions: Number of possible action the agent can take
         learning_rate: Learning rate
@@ -16,7 +20,7 @@ def build_q_network(n_actions, learning_rate=0.00001, input_shape=(84, 84), hist
         A compiled Keras model
     """
     # Dueling architecture requires a non-sequential step at the end, so
-    # we _must_ use Keras's functional API
+    # Keras's functional API is a natural choice
     model_input = Input(shape=(input_shape[0], input_shape[1], history_length))
     x = Lambda(lambda layer: layer / 255)(model_input)  # normalize by 255
 

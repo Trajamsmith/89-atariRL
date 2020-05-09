@@ -73,7 +73,7 @@ rb.sample_buffer(2)
 
 
 def build_dqn(lr: float, n_actions: int,
-              input_dims, fc1_dims, fc2_dims) -> Sequential:
+              input_dims: int, fc1_dims: int, fc2_dims: int) -> Sequential:
     """
     Build our deep-Q network. Note that depending on the problem space,
     the deep Q network could very well be a multi-layer dense network,
@@ -117,7 +117,7 @@ class Agent(object):
     """
 
     def __init__(self, alpha: float, gamma: float, n_actions: int, epsilon: float, batch_size: int,
-                 input_dims, epsilon_dec: float = 0.996, epsilon_min: float = 0.01,
+                 input_dims: int, epsilon_dec: float = 0.996, epsilon_min: float = 0.01,
                  mem_size: int = 1000000, fname='dqn_model.h5'):
         self.gamma = gamma
         self.epsilon = epsilon
