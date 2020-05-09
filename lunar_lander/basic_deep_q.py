@@ -200,10 +200,6 @@ class Agent(object):
         # Update our parameters: q_target is our validation
         _ = self.q_eval.fit(x=state, y=q_target, verbose=0)
 
-        # Update epsilon
-        self.epsilon = self.epsilon * self.epsilon_dec if self.epsilon > self.epsilon_min \
-            else self.epsilon_min
-
     def save_model(self):
         self.q_eval.save(self.model_file)
 
