@@ -26,7 +26,7 @@ class ReplayBuffer(object):
 
     def store_transition(self, state: int, action: int,
                          reward: float, state_: int, done: bool) -> None:
-        # Ovewrite older array values when exceeding mem_size
+        # Overwrite older array values when exceeding mem_size
         index = self.mem_cntr % self.mem_size
 
         # Store all values

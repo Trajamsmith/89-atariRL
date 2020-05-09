@@ -36,15 +36,17 @@ def build_q_network(n_actions: int, learning_rate: float = 0.00001,
     # Split into value and advantage streams
     val_stream, adv_stream = Lambda(lambda w: tf.split(w, 2, 3))(x)  # custom splitting layer
 
+    # State value estimator
     val_stream = Flatten()(val_stream)
     val = Dense(1, kernel_initializer=VarianceScaling(scale=2.))(val_stream)
 
+    # Advantage value estimator
+    # Each action has its own advantage value
     adv_stream = Flatten()(adv_stream)
     adv = Dense(n_actions, kernel_initializer=VarianceScaling(scale=2.))(adv_stream)
 
     # Combine streams into Q-Values
-    reduce_mean = Lambda(lambda w: tf.reduce_mean(w, axis=1, keepdims=True))  # custom layer for reduce mean
-
+    reduce_mean = Lambda(lambda w: tf.reduce_mean(w, axis=1, keepdims=True))
     q_vals = Add()([val, Subtract()([adv, reduce_mean(adv)])])
 
     # Build model
