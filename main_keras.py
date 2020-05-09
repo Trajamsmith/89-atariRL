@@ -16,6 +16,8 @@ if __name__ == '__main__':
         done = False
         score = 0
         observation = env.reset()
+
+        # Perform single learning episode
         while not done:
             action = agent.choose_action(observation)
             observation_, reward, done, info = env.step(action)
@@ -28,8 +30,10 @@ if __name__ == '__main__':
         scores.append(score)
 
         avg_score = np.mean(scores[max(0, i - 100):(i + 1)])
-        print('Episode: ', i, ', Score: %.2f' % score,
-              ', Average score: %.2f' % avg_score)
+        print('Episode: ', i,
+              ' / Epsilon', agent.epsilon,
+              ' / Score: %.2f' % score,
+              ' / Average score: %.2f' % avg_score)
 
         if i % 10 == 0 and i > 0:
             agent.save_model()

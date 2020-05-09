@@ -201,7 +201,7 @@ class Agent(object):
         _ = self.q_eval.fit(x=state, y=q_target, verbose=0)
 
         # Update epsilon
-        self.epsilon = self.epsilon * self.epsilon if self.epsilon > self.epsilon_min \
+        self.epsilon = self.epsilon * self.epsilon_dec if self.epsilon > self.epsilon_min \
             else self.epsilon_min
 
     def save_model(self):
