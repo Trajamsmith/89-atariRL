@@ -7,3 +7,5 @@ Initial implementations of these models were graciously borrowed from the follow
 
 ## Installation steps for Windows
 Follow this for `gym` on Windows: https://towardsdatascience.com/how-to-install-openai-gym-in-a-windows-environment-338969e24d30
+
+If that doesn't work, try this: https://stackoverflow.com/questions/56727832/how-to-fix-environment-error-in-open-ai-gym
