@@ -16,7 +16,7 @@ on its first attempt. Please see the source code for details.
 
 To see a heuristic landing, run:
 
-python gym/envs/box2d/lunar_lander.py
+python gym/envs/box2d/ll.py
 
 To play yourself, run:
 

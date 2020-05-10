@@ -1,4 +1,4 @@
-from atari.config import *
+from atari.configs.breakout_config import *
 from atari.dqn_architecture import build_q_network
 from atari.game_wrapper import GameWrapper
 from atari.replay_buffer import ReplayBuffer

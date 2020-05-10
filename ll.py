@@ -20,7 +20,7 @@ if __name__ == '__main__':
                   n_actions=4, mem_size=1000000, batch_size=64, epsilon_min=0.01)
 
     # Load model here, if continuing to train an existing model
-    # agent.load_model()
+    agent.load_model()
 
     # Keep a history of scores and episodes
     scores = []
@@ -35,16 +35,18 @@ if __name__ == '__main__':
         observation = env.reset()
 
         while not done:
-            action = agent.choose_action(observation)
+            # Render the scene -- COMMENT OUT IF TRAINING
+            env.render()
 
             # Take an action and observe the results
+            action = agent.choose_action(observation)
             observation_, reward, done, info = env.step(action)
             score += reward
             agent.remember(observation, action, reward, observation_, done)
             observation = observation_
 
             # Update our network based on the results
-            agent.learn()
+            # agent.learn()
 
         # Store episode results
         eps_history.append(agent.epsilon)
@@ -62,4 +64,5 @@ if __name__ == '__main__':
 
         # Save model periodically
         if i % 10 == 0 and i > 0:
+            print('Saving model!')
             agent.save_model()
