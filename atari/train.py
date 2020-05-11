@@ -1,8 +1,8 @@
-from atari.configs.breakout_config import *
-from atari.dqn_architecture import build_q_network
-from atari.game_wrapper import GameWrapper
-from atari.replay_buffer import ReplayBuffer
-from atari.agent import Agent
+from breakout.configs.breakout_config import *
+from breakout.dqn_architecture import build_q_network
+from breakout.game_wrapper import GameWrapper
+from breakout.replay_buffer import ReplayBuffer
+from breakout.agent import Agent
 
 import numpy as np
 import tensorflow as tf

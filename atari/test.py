@@ -1,8 +1,8 @@
-from atari.configs.breakout_config import *
-from atari.dqn_architecture import build_q_network
-from atari.game_wrapper import GameWrapper
-from atari.replay_buffer import ReplayBuffer
-from atari.agent import Agent
+from breakout.configs.breakout_config import *
+from breakout.dqn_architecture import build_q_network
+from breakout.game_wrapper import GameWrapper
+from breakout.replay_buffer import ReplayBuffer
+from breakout.agent import Agent
 
 import numpy as np
 
@@ -21,9 +21,9 @@ replay_buffer = ReplayBuffer(size=MEM_SIZE, input_shape=INPUT_SHAPE)
 agent = Agent(MAIN_DQN, TARGET_DQN, replay_buffer, game_wrapper.env.action_space.n, input_shape=INPUT_SHAPE)
 
 print('Loading model...')
-# We only want to store the replay buffer when pausing training
+# We only want to load the replay buffer when resuming training
 agent.load('../breakout-saves/save-01504066/', load_replay_buffer=False)
-print('Loaded')
+print('Loaded.')
 
 terminal = True
 eval_rewards = []

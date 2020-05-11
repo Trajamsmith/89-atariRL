@@ -1,4 +1,4 @@
-from lunar_lander.basic_deep_q import Agent
+from lunar_lander.lunar_lander_dqn import Agent
 import numpy as np
 import gym
 

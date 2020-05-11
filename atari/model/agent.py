@@ -3,7 +3,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from .replay_buffer import ReplayBuffer
+from atari.model.replay_buffer import ReplayBuffer
 from typing import Union, List
 
 
