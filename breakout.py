@@ -4,6 +4,7 @@ from atari.game_wrapper import GameWrapper
 from atari.replay_buffer import ReplayBuffer
 from atari.agent import Agent
 
+import numpy as np
 import tensorflow as tf
 import time
 

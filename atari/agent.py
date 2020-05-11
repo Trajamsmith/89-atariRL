@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from .replay_buffer import ReplayBuffer
-from typing import Union
+from typing import Union, List
 
 
 class Agent(object):
@@ -113,7 +113,7 @@ class Agent(object):
         q_vals = self.DQN.predict(state.reshape((-1, self.input_shape[0], self.input_shape[1], self.history_length)))[0]
         return q_vals.argmax()
 
-    def get_intermediate_representation(self, state: int, layer_names: Union[str, [str]] = None,
+    def get_intermediate_representation(self, state: int, layer_names: Union[str, List[str]] = None,
                                         stack_state: bool = True):
         """
         Get the output of a hidden layer inside the model.  This will be/is used for visualizing model
@@ -239,6 +239,7 @@ class Agent(object):
         Load a previously saved Agent from a folder
         Args:
             folder_name: Folder from which to load the Agent
+            load_replay_buffer: Whether or not to load the saved buffer
         Returns:
             All other saved attributes, e.g., frame number
         """

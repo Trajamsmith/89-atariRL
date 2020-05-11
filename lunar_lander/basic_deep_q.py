@@ -1,7 +1,11 @@
+import datetime
+import time
+
+import numpy as np
+import tensorflow as tf
 from tensorflow.keras.layers import Dense, Activation
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.optimizers import Adam
-import numpy as np
 
 
 class ReplayBuffer(object):
@@ -41,7 +45,7 @@ class ReplayBuffer(object):
             actions[action] = 1.0
             self.action_memory[index] = actions
         else:
-            # For continous spaces, store the float
+            # For continuous spaces, store the float
             self.action_memory[index] = action
 
         self.mem_cntr += 1
@@ -61,15 +65,6 @@ class ReplayBuffer(object):
         terminal = self.terminal_memory[batch]
 
         return states, actions, rewards, states_, terminal
-
-
-rb = ReplayBuffer(5, 2, 2)
-rb.store_transition(1, 1, 1, 1, 0)
-rb.store_transition(1, 1, 1, 1, 0)
-rb.store_transition(1, 1, 1, 1, 0)
-rb.store_transition(1, 1, 1, 1, 0)
-rb.store_transition(1, 1, 1, 1, 0)
-rb.sample_buffer(2)
 
 
 def build_dqn(lr: float, n_actions: int,
@@ -117,8 +112,8 @@ class Agent(object):
     """
 
     def __init__(self, alpha: float, gamma: float, n_actions: int, epsilon: float, batch_size: int,
-                 input_dims: int, epsilon_dec: float = 0.996, epsilon_min: float = 0.01,
-                 mem_size: int = 1000000, fname='dqn_model.h5'):
+                 input_dims: int, epsilon_dec: float = 0.998, epsilon_min: float = 0.01,
+                 mem_size: int = 1000000, fname: str = 'll_model.h5'):
         self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_dec = epsilon_dec
@@ -133,7 +128,13 @@ class Agent(object):
         # Init our buffer
         self.memory = ReplayBuffer(mem_size, input_dims, n_actions, discrete=True)
         # Init our neural network
-        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 256)
+        # From a paper I found, two dense nets with 256 and 128 size is best
+        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 128)
+
+        # Tensorboard logs
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = 'logs/ll/' + current_time
+        self.summary_writer = tf.summary.create_file_writer(log_dir)
 
     # Store system snapshot in buffer
     def remember(self, state: int, action: int, reward: float,
@@ -158,7 +159,7 @@ class Agent(object):
         return action
 
     # Temporal difference learning process.
-    def learn(self) -> None:
+    def episode(self):
         # Two important breakthroughs that make this work in
         # situations where naive Q didn't --
         # 1. EXPERIENCE REPLAY
@@ -172,8 +173,6 @@ class Agent(object):
             return
 
         # Note that we're generally sampling non-sequential memories
-        # TODO: So, are we just jumping around, sampling random states from
-        # TODO: different parts of the games? Still a little lost.
         state, action, reward, new_state, done = self.memory.sample_buffer(self.batch_size)
 
         # Working with the one-hot encoding
@@ -198,10 +197,29 @@ class Agent(object):
         q_target[batch_index, action_indices] = reward + self.gamma * np.max(q_next, axis=1) * done
 
         # Update our parameters: q_target is our validation
-        _ = self.q_eval.fit(x=state, y=q_target, verbose=0)
+        history = self.q_eval.fit(x=state, y=q_target, verbose=0)
+        return history
+
+    def update_eps(self):
+        """
+        Update epsilon after an episode
+        """
+        self.epsilon = (self.epsilon * self.epsilon_dec) if self.epsilon > self.epsilon_min \
+            else self.epsilon_min
+
+    def log_metrics(self, episode: int, reward: float, avg_rewards: float, avg_losses: float):
+        """
+        Log our metrics so we can visualize them in TensorBoard
+        """
+        with self.summary_writer.as_default():
+            tf.summary.scalar('episode reward', reward, step=episode)
+            tf.summary.scalar('running avg reward(100)', avg_rewards, step=episode)
+            tf.summary.scalar('average loss', avg_losses, step=episode)
 
     def save_model(self):
+        print("Model saved!")
         self.q_eval.save(self.model_file)
 
     def load_model(self):
+        print("Model loaded!")
         self.q_eval = load_model(self.model_file)
