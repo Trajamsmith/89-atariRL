@@ -2,5 +2,7 @@
 
 # Don't upload model checkpoints or logs
 # for incomplete models!
-./atari/breakout-saves/*
-./lunar_lander/log/*
+atari/tensorboard
+atari/breakout-saves
+lunar_lander/logs
+lunar_lander/saved_models
