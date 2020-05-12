@@ -1,1 +1,6 @@
 .idea
+
+# Don't upload model checkpoints or logs
+# for incomplete models!
+./atari/breakout-saves/*
+./lunar_lander/log/*
