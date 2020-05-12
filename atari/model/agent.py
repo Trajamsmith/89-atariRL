@@ -22,8 +22,7 @@ class Agent(object):
                  eps_evaluation: float = 0.0,
                  eps_annealing_frames: int = 1000000,
                  replay_buffer_start_size: int = 50000,
-                 max_frames: int = 25000000,
-                 use_per: bool = True):
+                 max_frames: int = 25000000):
         """
         Implements a standard dueling DQN agent.
         Args:
@@ -41,7 +40,6 @@ class Agent(object):
             eps_annealing_frames: Number of frames during which epsilon will be annealed to eps_final, then eps_final_frame
             replay_buffer_start_size: Size of replay buffer before beginning to learn (after this many frames, epsilon is decreased more slowly)
             max_frames: Number of total frames the agent will be trained for
-            use_per: Use PER instead of classic experience replay
         """
 
         self.n_actions = n_actions
@@ -54,7 +52,6 @@ class Agent(object):
         self.batch_size = batch_size
 
         self.replay_buffer = replay_buffer
-        self.use_per = use_per
 
         # Epsilon information
         self.eps_initial = eps_initial
@@ -87,7 +84,7 @@ class Agent(object):
             return self.eps_evaluation
         elif frame_number < self.replay_buffer_start_size:
             return self.eps_initial
-        elif frame_number >= self.replay_buffer_start_size and frame_number < self.replay_buffer_start_size + self.eps_annealing_frames:
+        elif self.replay_buffer_start_size <= frame_number < self.replay_buffer_start_size + self.eps_annealing_frames:
             return self.slope * frame_number + self.intercept
         elif frame_number >= self.replay_buffer_start_size + self.eps_annealing_frames:
             return self.slope_2 * frame_number + self.intercept_2
@@ -166,14 +163,9 @@ class Agent(object):
             The loss between the predicted and target Q as a float
         """
 
-        if self.use_per:
-            (states, actions, rewards, new_states,
-             terminal_flags), importance, indices = self.replay_buffer.get_minibatch(batch_size=self.batch_size,
-                                                                                     priority_scale=priority_scale)
-            importance = importance ** (1 - self.calc_epsilon(frame_number))
-        else:
-            states, actions, rewards, new_states, terminal_flags = self.replay_buffer.get_minibatch(
-                batch_size=self.batch_size, priority_scale=priority_scale)
+
+        states, actions, rewards, new_states, terminal_flags = self.replay_buffer.get_minibatch(
+            batch_size=self.batch_size, priority_scale=priority_scale)
 
         # Main DQN estimates best action in new states
         arg_q_max = self.DQN.predict(new_states).argmax(axis=1)
@@ -196,17 +188,8 @@ class Agent(object):
             error = Q - target_q
             loss = tf.keras.losses.Huber()(target_q, Q)
 
-            if self.use_per:
-                # Multiply the loss by importance, so that the gradient is also scaled.
-                # The importance scale reduces bias against situataions that are sampled
-                # more frequently.
-                loss = tf.reduce_mean(loss * importance)
-
         model_gradients = tape.gradient(loss, self.DQN.trainable_variables)
         self.DQN.optimizer.apply_gradients(zip(model_gradients, self.DQN.trainable_variables))
-
-        if self.use_per:
-            self.replay_buffer.set_priorities(indices, error)
 
         return float(loss.numpy()), error
 

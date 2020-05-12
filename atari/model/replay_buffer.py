@@ -5,7 +5,7 @@ import numpy as np
 
 
 class ReplayBuffer:
-    def __init__(self, size=1000000, input_shape=(84, 84), history_length=4, use_per=True):
+    def __init__(self, size=1000000, input_shape=(84, 84), history_length=4):
         """
         Implements a Prioritized Experience Replay (PER) buffer to store transitions.
         This implementation was heavily inspired by Fabio M. Graetz's replay buffer
@@ -14,7 +14,6 @@ class ReplayBuffer:
             size: Integer, Number of stored transitions
             input_shape: Shape of the preprocessed frame
             history_length: Integer, Number of frames stacked together to create a state for the agent
-            use_per: Use PER instead of classic experience replay
         """
         self.size = size
         self.input_shape = input_shape
@@ -28,8 +27,6 @@ class ReplayBuffer:
         self.frames = np.empty((self.size, self.input_shape[0], self.input_shape[1]), dtype=np.uint8)
         self.terminal_flags = np.empty(self.size, dtype=np.bool)
         self.priorities = np.zeros(self.size, dtype=np.float32)
-
-        self.use_per = use_per
 
     def add_experience(self, action: int, frame, reward: float, terminal: bool, clip_reward=True):
         """
@@ -73,22 +70,16 @@ class ReplayBuffer:
         if self.count < self.history_length:
             raise ValueError('Not enough memories to get a minibatch')
 
-        # Get sampling probabilities from priority list
-        if self.use_per:
-            scaled_priorities = self.priorities[self.history_length:self.count - 1] ** priority_scale
-            sample_probabilities = scaled_priorities / sum(scaled_priorities)
-
         # Get a list of valid indices
         indices = []
         for i in range(batch_size):
             while True:
-                # Get a random number from history_length to maximum frame written with probabilities based on priority weights
-                if self.use_per:
-                    index = np.random.choice(np.arange(self.history_length, self.count - 1), p=sample_probabilities)
-                else:
-                    index = random.randint(self.history_length, self.count - 1)
+                # Get a random number from history_length to maximum frame written with
+                # probabilities based on priority weights
+                index = random.randint(self.history_length, self.count - 1)
 
-                # We check that all frames are from same episode with the two following if statements.  If either are True, the index is invalid.
+                # We check that all frames are from same episode with the two following if statements.
+                # If either are True, the index is invalid.
                 if index >= self.current and index - self.history_length <= self.current:
                     continue
                 if self.terminal_flags[index - self.history_length:index].any():
@@ -106,25 +97,7 @@ class ReplayBuffer:
         states = np.transpose(np.asarray(states), axes=(0, 2, 3, 1))
         new_states = np.transpose(np.asarray(new_states), axes=(0, 2, 3, 1))
 
-        if self.use_per:
-            # Get importance weights from probabilities calculated earlier
-            importance = 1 / self.count * 1 / sample_probabilities[[index - 4 for index in indices]]
-            importance = importance / importance.max()
-
-            return (states, self.actions[indices], self.rewards[indices], new_states,
-                    self.terminal_flags[indices]), importance, indices
-        else:
-            return states, self.actions[indices], self.rewards[indices], new_states, self.terminal_flags[indices]
-
-    def set_priorities(self, indices: [int], errors: [float], offset: float = 0.1):
-        """
-        Update priorities for PER
-        Args:
-            indices: Indices to update
-            errors: For each index, the error between the target Q-vals and the predicted Q-vals
-        """
-        for i, e in zip(indices, errors):
-            self.priorities[i] = abs(e) + offset
+        return states, self.actions[indices], self.rewards[indices], new_states, self.terminal_flags[indices]
 
     def save(self, folder_name: str):
         """
