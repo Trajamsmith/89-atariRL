@@ -8,25 +8,23 @@ from lunar_lander.model.dqn import build_dqn
 
 
 class Agent(object):
-    """
-    Our Lunar Lander agent, using a pretty straightforward
-    deep Q network with experience replay.
-    Args:
-        alpha: The learning rate.
-        gamma: The discount factor.
-        n_actions: Number of actions.
-        epsilon: The exploration-exploitation parameter.
-        batch_size: Size of the training sample.
-        input_dims: Input to NN.
-        epsilon_dec: Decrement factor for epsilon.
-        epsilon_min: Minimum value of epsilon.
-        mem_size: Size of our replay buffer.
-        fname: Name of the file where we're storing the model.
-    """
-
-    def __init__(self, alpha: float, gamma: float, n_actions: int, epsilon: float, batch_size: int,
+    def __init__(self, alpha: float, gamma: float, epsilon: float, batch_size: int,
                  input_dims: int, epsilon_dec: float = 0.998, epsilon_min: float = 0.01,
                  mem_size: int = 1000000, fname: str = 'll_model.h5'):
+        """
+        Our Lunar Lander agent, using a pretty straightforward
+        deep Q network with experience replay.
+        Args:
+            alpha: The learning rate.
+            gamma: The discount factor.
+            epsilon: The exploration-exploitation parameter.
+            batch_size: Size of the training sample.
+            input_dims: Input to NN.
+            epsilon_dec: Decrement factor for epsilon.
+            epsilon_min: Minimum value of epsilon.
+            mem_size: Size of our replay buffer.
+            fname: Name of the file where we're storing the model.
+        """
         self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_dec = epsilon_dec
@@ -36,14 +34,14 @@ class Agent(object):
 
         # Available actions at any given time
         # e.g. [0, 1, 2, 3, 4]
-        self.action_space = [i for i in range(n_actions)]
+        self.action_space = [i for i in range(4)]
 
         # Init our buffer
-        self.memory = ReplayBuffer(mem_size, input_dims, n_actions, discrete=True)
+        self.memory = ReplayBuffer(mem_size, input_dims)
 
         # Init our neural network
         # From a paper I found, two dense nets with 256 and 128 size is best
-        self.q_eval = build_dqn(alpha, n_actions, input_dims, 256, 128)
+        self.q_eval = build_dqn(alpha, input_dims, 256, 128)
 
         # Tensorboard logs
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
