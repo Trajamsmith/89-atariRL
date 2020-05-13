@@ -20,7 +20,6 @@ env = gym.make('LunarLander-v2')
 n_games = 2000
 
 # Initialize the agent
-# TODO: Explore more adjustments in these hyperparameters
 epsilon = 1.0
 if not TRAIN_MODEL:
     # We don't want the agent to explore if we're not training
@@ -85,7 +84,8 @@ for i in range(n_games):
           ' / Avg. Score: %.2f' % avg_score,
           ' / Loss: %.2f' % losses[-1],
           ' / Avg. Loss: %.2f' % avg_loss)
-    agent.log_metrics(episode=i, reward=score, avg_rewards=avg_score, avg_losses=avg_loss)
+    agent.log_metrics(episode=i, reward=score,
+                      avg_rewards=avg_score, avg_losses=avg_loss)
 
     # Save model periodically
     if TRAIN_MODEL and i % 10 == 0 and i > 0:
