@@ -2,8 +2,9 @@ import json
 import os
 import numpy as np
 import tensorflow as tf
+import shutil
 from tensorflow.keras.models import Model
-from atari.model.replay_buffer import ReplayBuffer
+from .replay_buffer import ReplayBuffer
 from typing import Union, List
 
 
@@ -12,7 +13,6 @@ class Agent(object):
                  dqn: Model,
                  target_dqn: Model,
                  replay_buffer: ReplayBuffer,
-                 n_actions: int,
                  input_shape: tuple = (84, 84),
                  batch_size: int = 32,
                  history_length: int = 4,
@@ -29,7 +29,6 @@ class Agent(object):
             dqn: A DQN (returned by the DQN function) to predict moves
             target_dqn: A DQN (returned by the DQN function) to predict target-q values.  This can be initialized in the same way as the dqn argument
             replay_buffer: A ReplayBuffer object for holding all previous experiences
-            n_actions: Number of possible actions for the given environment
             input_shape: Tuple/list describing the shape of the pre-processed environment
             batch_size: Number of samples to draw from the replay memory every updating session
             history_length: Number of historical frames available to the agent
@@ -41,8 +40,7 @@ class Agent(object):
             replay_buffer_start_size: Size of replay buffer before beginning to learn (after this many frames, epsilon is decreased more slowly)
             max_frames: Number of total frames the agent will be trained for
         """
-
-        self.n_actions = n_actions
+        self.n_actions = 4
         self.input_shape = input_shape
         self.history_length = history_length
 
@@ -50,7 +48,6 @@ class Agent(object):
         self.replay_buffer_start_size = replay_buffer_start_size
         self.max_frames = max_frames
         self.batch_size = batch_size
-
         self.replay_buffer = replay_buffer
 
         # Epsilon information
@@ -71,6 +68,9 @@ class Agent(object):
         # DQN
         self.DQN = dqn
         self.target_dqn = target_dqn
+
+        # Checkpoints
+        self.last_checkpoint: str = ''
 
     def calc_epsilon(self, frame_number: int, evaluation: bool = False):
         """Get the appropriate epsilon value from a given frame number
@@ -98,7 +98,6 @@ class Agent(object):
         Returns:
             An integer as the predicted move
         """
-
         # Calculate epsilon based on the frame number
         eps = self.calc_epsilon(frame_number, evaluation)
 
@@ -162,8 +161,6 @@ class Agent(object):
         Returns:
             The loss between the predicted and target Q as a float
         """
-
-
         states, actions, rewards, new_states, terminal_flags = self.replay_buffer.get_minibatch(
             batch_size=self.batch_size, priority_scale=priority_scale)
 
@@ -174,7 +171,7 @@ class Agent(object):
         future_q_vals = self.target_dqn.predict(new_states)
         double_q = future_q_vals[range(batch_size), arg_q_max]
 
-        # Calculate targets (bellman equation)
+        # Calculate targets (Bellman equation)
         target_q = rewards + (gamma * double_q * (1 - terminal_flags))
 
         # Use targets to calculate loss (and use loss to calculate gradients)
@@ -193,6 +190,10 @@ class Agent(object):
 
         return float(loss.numpy()), error
 
+    #############################################################
+    # TODO: Saving and loading should be its own module
+    # No reason for these to be methods on the agent
+    #############################################################
     def save(self, folder_name: str, **kwargs):
         """
         Saves the Agent and all corresponding properties into a folder
@@ -200,11 +201,11 @@ class Agent(object):
             folder_name: Folder in which to save the Agent
             **kwargs: Agent.save will also save any keyword arguments passed.  This is used for saving the frame_number
         """
-
         # Create the folder for saving the agent
         if not os.path.isdir(folder_name):
             os.makedirs(folder_name)
 
+        print("Saving model to", folder_name)
         # Save DQN and target DQN
         self.DQN.save(folder_name + '/dqn.h5')
         self.target_dqn.save(folder_name + '/target_dqn.h5')
@@ -217,6 +218,22 @@ class Agent(object):
             f.write(json.dumps({**{'buff_count': self.replay_buffer.count, 'buff_curr': self.replay_buffer.current},
                                 **kwargs}))  # save replay_buffer information and any other information
 
+    def delete_prev_checkpoint(self, folder_name: str):
+        """
+        Delete files for last checkpoint, to prevent memory bloat
+        during training!
+        Args:
+            folder_name: Name of the last checkpoint directory
+        """
+        if folder_name == '':
+            return
+
+        if not os.path.isdir(folder_name):
+            raise ValueError(f'Cannot remove saved model directory: {folder_name}')
+
+        print("Removing old model checkpoint from", folder_name)
+        shutil.rmtree(folder_name)
+
     def load(self, folder_name: str, load_replay_buffer: bool = True):
         """
         Load a previously saved Agent from a folder
@@ -226,12 +243,11 @@ class Agent(object):
         Returns:
             All other saved attributes, e.g., frame number
         """
-
         if not os.path.isdir(folder_name):
             raise ValueError(f'{folder_name} is not a valid directory')
 
         # Load DQNs
-        self.DQN = tf.keras.models.load_model(folder_name + '/dqn.h5')
+        self.DQN = tf.keras.models.load_model(os.path.join(folder_name, 'dqn.h5'))
         self.target_dqn = tf.keras.models.load_model(folder_name + '/target_dqn.h5')
         self.optimizer = self.DQN.optimizer
 

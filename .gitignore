@@ -4,5 +4,6 @@
 # for incomplete models!
 atari/tensorboard
 atari/breakout-saves
+atari/saved_models
 lunar_lander/logs
 lunar_lander/saved_models

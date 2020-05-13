@@ -1,6 +1,7 @@
-from lunar_lander.lunar_lander_dqn import Agent
-import numpy as np
 import gym
+import numpy as np
+
+from lunar_lander.model.agent import Agent
 
 # If false, load the saved model instead
 TRAIN_MODEL: bool = False

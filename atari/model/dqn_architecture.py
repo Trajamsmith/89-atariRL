@@ -1,11 +1,11 @@
-import tensorflow as tf
 from tensorflow.keras.initializers import VarianceScaling
 from tensorflow.keras.layers import Add, Conv2D, Dense, Flatten, Input, Lambda, Subtract
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam, RMSprop
+import tensorflow as tf
 
 
-def build_q_network(n_actions: int, learning_rate: float = 0.00001,
+def build_q_network(learning_rate: float = 0.00001,
                     input_shape: tuple = (84, 84), history_length: int = 4) -> Model:
     """
     Builds a dueling DQN as a Keras model. For a good overview of dueling
@@ -41,9 +41,9 @@ def build_q_network(n_actions: int, learning_rate: float = 0.00001,
     val = Dense(1, kernel_initializer=VarianceScaling(scale=2.))(val_stream)
 
     # Advantage value estimator
-    # Each action has its own advantage value
+    # Each of the four actions has its own advantage value
     adv_stream = Flatten()(adv_stream)
-    adv = Dense(n_actions, kernel_initializer=VarianceScaling(scale=2.))(adv_stream)
+    adv = Dense(4, kernel_initializer=VarianceScaling(scale=2.))(adv_stream)
 
     # Combine streams into Q-Values
     reduce_mean = Lambda(lambda w: tf.reduce_mean(w, axis=1, keepdims=True))

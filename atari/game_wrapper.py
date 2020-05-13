@@ -27,15 +27,14 @@ def process_frame(frame, shape=(84, 84)):
 
 
 class GameWrapper:
-    def __init__(self, env_name: str, no_op_steps: int = 10, history_length: int = 4):
+    def __init__(self, no_op_steps: int = 10, history_length: int = 4):
         """
         Wrapper for the environment provided by Gym.
         Args:
-            env_name: Name of the gym environment
             no_op_steps: Evaluation "lag," improve performance
             history_length: History length
         """
-        self.env = gym.make(env_name)
+        self.env = gym.make('BreakoutDeterministic-v4')
         self.no_op_steps = no_op_steps
         self.history_length = history_length
 

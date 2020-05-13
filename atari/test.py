@@ -1,15 +1,15 @@
-from breakout.configs.breakout_config import *
-from breakout.dqn_architecture import build_q_network
-from breakout.game_wrapper import GameWrapper
-from breakout.replay_buffer import ReplayBuffer
-from breakout.agent import Agent
+from atari.config import *
+from atari.model.dqn_architecture import build_q_network
+from atari.game_wrapper import GameWrapper
+from atari.model.replay_buffer import ReplayBuffer
+from atari.model.agent import Agent
 
 import numpy as np
 
 ENV_NAME = 'BreakoutDeterministic-v4'
 
 # Create environment
-game_wrapper = GameWrapper(ENV_NAME, MAX_NOOP_STEPS)
+game_wrapper = GameWrapper(MAX_NOOP_STEPS)
 print("The environment has the following {} actions: {}".format(game_wrapper.env.action_space.n,
                                                                 game_wrapper.env.unwrapped.get_action_meanings()))
 

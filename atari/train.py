@@ -1,35 +1,38 @@
-from breakout.configs.breakout_config import *
-from breakout.dqn_architecture import build_q_network
-from breakout.game_wrapper import GameWrapper
-from breakout.replay_buffer import ReplayBuffer
-from breakout.agent import Agent
+from atari.config import *
+from atari.game_wrapper import GameWrapper
+from atari.model.dqn_architecture import build_q_network
+from atari.model.replay_buffer import ReplayBuffer
+from atari.model.agent import Agent
 
 import numpy as np
 import tensorflow as tf
 import time
 
-# Create environment
-game_wrapper = GameWrapper(ENV_NAME, MAX_NOOP_STEPS)
-print("The environment has the following {} actions: {}".format(game_wrapper.env.action_space.n,
-                                                                game_wrapper.env.unwrapped.get_action_meanings()))
-
 # TensorBoard writer
 writer = tf.summary.create_file_writer(TENSORBOARD_DIR)
 
-# Build main and target networks
-MAIN_DQN = build_q_network(game_wrapper.env.action_space.n, LEARNING_RATE, input_shape=INPUT_SHAPE)
-TARGET_DQN = build_q_network(game_wrapper.env.action_space.n, input_shape=INPUT_SHAPE)
+# Create environment
+game_wrapper = GameWrapper(MAX_NOOP_STEPS)
+print("The environment has the following {} actions: {}".format(game_wrapper.env.action_space.n,
+                                                                game_wrapper.env.unwrapped.get_action_meanings()))
 
-replay_buffer = ReplayBuffer(size=MEM_SIZE, input_shape=INPUT_SHAPE, use_per=USE_PER)
-agent = Agent(MAIN_DQN, TARGET_DQN, replay_buffer, game_wrapper.env.action_space.n, input_shape=INPUT_SHAPE,
-              batch_size=BATCH_SIZE, use_per=USE_PER)
-
-# Training and evaluation
+# TODO: Move this to another module
+# Create or load the agent
 if LOAD_FROM is None:
     frame_number = 0
     rewards = []
     loss_list = []
+
+    # Build main and target networks
+    MAIN_DQN = build_q_network(LEARNING_RATE, input_shape=INPUT_SHAPE)
+    TARGET_DQN = build_q_network(input_shape=INPUT_SHAPE)
+
+    replay_buffer = ReplayBuffer(size=MEM_SIZE, input_shape=INPUT_SHAPE)
+    agent = Agent(MAIN_DQN, TARGET_DQN, replay_buffer, input_shape=INPUT_SHAPE,
+                  batch_size=BATCH_SIZE)
 else:
+    # TODO: LOADING IS A LITTLE BROKEN AT THE MOMENTS!
+    # Load the agent instead
     print('Loading from', LOAD_FROM)
     meta = agent.load(LOAD_FROM, LOAD_REPLAY_BUFFER)
 
@@ -40,17 +43,26 @@ else:
 
     print('Loaded')
 
-# Main loop
+# FULL TRAINING LOOP
 try:
+    # Allows us to write to Tensorboard
     with writer.as_default():
         while frame_number < TOTAL_FRAMES:
-            # Training
             epoch_frame = 0
+
+            # TRAINING EPOCH
+            # We evaluate and save our model after a number of
+            # epoch, controlled by frame numbers in our config.
             while epoch_frame < FRAMES_BETWEEN_EVAL:
                 start_time = time.time()
                 game_wrapper.reset()
                 life_lost = True
                 episode_reward_sum = 0
+
+                # TRAINING EPISODE
+                # One episode is one game, after which we update
+                # our metrics. If the episode takes longer than anticipated
+                # we can shortcircuit (to avoid less valuable training).
                 for _ in range(MAX_EPISODE_LENGTH):
                     # Get action
                     action = agent.get_action(frame_number, game_wrapper.state)
@@ -121,21 +133,36 @@ try:
                 if terminal:
                     eval_rewards.append(episode_reward_sum)
 
+            # Examine evaluation scores
             if len(eval_rewards) > 0:
                 final_score = np.mean(eval_rewards)
             else:
                 # In case the game is longer than the number of frames allowed
                 final_score = episode_reward_sum
-            # Print score and write to tensorboard
+            # Print score and write to Tensorboard
             print('Evaluation score:', final_score)
             if WRITE_TENSORBOARD:
                 tf.summary.scalar('Evaluation score', final_score, frame_number)
                 writer.flush()
 
             # Save model
-            if len(rewards) > 300 and SAVE_PATH is not None:
-                agent.save(f'{SAVE_PATH}/save-{str(frame_number).zfill(8)}', frame_number=frame_number, rewards=rewards,
+            print("LENGTH OF REWARDS", len(rewards))
+            if len(rewards) > 100 and SAVE_PATH is not None:
+                print('SAVING MODEL')
+                # Temp store last_checkpoint dir
+                prev_dir = agent.last_checkpoint
+
+                # Update location of last checkpoint
+                dir_name = f'{SAVE_PATH}/save-{str(frame_number).zfill(8)}'
+                agent.last_checkpoint = dir_name
+
+                # Save new checkpoint
+                agent.save(dir_name, frame_number=frame_number, rewards=rewards,
                            loss_list=loss_list)
+
+                # Remove old checkpoint to prevent bloat
+                # agent.delete_prev_checkpoint(prev_dir)
+
 except KeyboardInterrupt:
     print('\nTraining exited early.')
     writer.close()
@@ -143,7 +170,8 @@ except KeyboardInterrupt:
     if SAVE_PATH is None:
         try:
             SAVE_PATH = input(
-                'Would you like to save the trained model? If so, type in a save path, otherwise, interrupt with ctrl+c. ')
+                'Would you like to save the trained model? \
+                If so, type in a save path, otherwise, interrupt with Ctrl + C. ')
         except KeyboardInterrupt:
             print('\nExiting...')
 
