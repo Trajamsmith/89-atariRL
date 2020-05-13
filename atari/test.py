@@ -14,15 +14,15 @@ print("The environment has the following {} actions: {}".format(game_wrapper.env
                                                                 game_wrapper.env.unwrapped.get_action_meanings()))
 
 # Create agent
-MAIN_DQN = build_q_network(game_wrapper.env.action_space.n, LEARNING_RATE, input_shape=INPUT_SHAPE)
-TARGET_DQN = build_q_network(game_wrapper.env.action_space.n, input_shape=INPUT_SHAPE)
+MAIN_DQN = build_q_network( LEARNING_RATE, input_shape=INPUT_SHAPE)
+TARGET_DQN = build_q_network(input_shape=INPUT_SHAPE)
 
 replay_buffer = ReplayBuffer(size=MEM_SIZE, input_shape=INPUT_SHAPE)
-agent = Agent(MAIN_DQN, TARGET_DQN, replay_buffer, game_wrapper.env.action_space.n, input_shape=INPUT_SHAPE)
+agent = Agent(MAIN_DQN, TARGET_DQN, replay_buffer, input_shape=INPUT_SHAPE)
 
 print('Loading model...')
 # We only want to load the replay buffer when resuming training
-agent.load('../breakout-saves/save-01504066/', load_replay_buffer=False)
+agent.load('./saved_models/save-02502048/', load_replay_buffer=False)
 print('Loaded.')
 
 terminal = True

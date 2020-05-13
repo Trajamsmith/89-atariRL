@@ -10,7 +10,7 @@ from lunar_lander.model.dqn import build_dqn
 class Agent(object):
     def __init__(self, alpha: float, gamma: float, epsilon: float, batch_size: int,
                  input_dims: int, epsilon_dec: float = 0.998, epsilon_min: float = 0.01,
-                 mem_size: int = 1000000, fname: str = 'll_model.h5'):
+                 mem_size: int = 1000000, fname: str = './lunar_lander/ll_model.h5'):
         """
         Our Lunar Lander agent, using a pretty straightforward
         deep Q network with experience replay.

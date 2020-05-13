@@ -29,7 +29,7 @@ MAX_EPISODE_LENGTH = 18000
 FRAMES_BETWEEN_EVAL = 250000
 
 # Number of frames to evaluate for
-EVAL_LENGTH = 1000
+EVAL_LENGTH = 10000
 
 # Number of actions chosen between updating the target network
 UPDATE_FREQ = 10000
