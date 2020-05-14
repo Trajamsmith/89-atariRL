@@ -1,8 +1,8 @@
-from atari.config import *
-from atari.model.dqn_architecture import build_q_network
-from atari.game_wrapper import GameWrapper
-from atari.model.replay_buffer import ReplayBuffer
-from atari.model.agent import Agent
+from config import *
+from model.dqn_architecture import build_q_network
+from game_wrapper import GameWrapper
+from model.replay_buffer import ReplayBuffer
+from model.agent import Agent
 
 import numpy as np
 
@@ -14,7 +14,7 @@ print("The environment has the following {} actions: {}".format(game_wrapper.env
                                                                 game_wrapper.env.unwrapped.get_action_meanings()))
 
 # Create agent
-MAIN_DQN = build_q_network( LEARNING_RATE, input_shape=INPUT_SHAPE)
+MAIN_DQN = build_q_network(LEARNING_RATE, input_shape=INPUT_SHAPE)
 TARGET_DQN = build_q_network(input_shape=INPUT_SHAPE)
 
 replay_buffer = ReplayBuffer(size=MEM_SIZE, input_shape=INPUT_SHAPE)
@@ -39,16 +39,20 @@ for frame in range(EVAL_LENGTH):
     # Breakout require a "fire" action (action #1) to start the
     # game each time a life is lost.
     # Otherwise, the agent would sit around doing nothing.
-    action = 1 if life_lost else agent.get_action(0, game_wrapper.state, evaluation=True)
+    action = 1 if life_lost else agent.get_action(
+        0, game_wrapper.state, evaluation=True)
 
     # Step action
-    _, reward, terminal, life_lost = game_wrapper.step(action, render_mode='human')
+    _, reward, terminal, life_lost = game_wrapper.step(
+        action, render_mode='human')
     evaluate_frame_number += 1
     episode_reward_sum += reward
 
     # On game-over
     if terminal:
-        print(f'Game over, reward: {episode_reward_sum}, frame: {frame}/{EVAL_LENGTH}')
+        print(
+            f'Game over, reward: {episode_reward_sum}, frame: {frame}/{EVAL_LENGTH}')
         eval_rewards.append(episode_reward_sum)
 
-print('Average reward:', np.mean(eval_rewards) if len(eval_rewards) > 0 else episode_reward_sum)
+print('Average reward:', np.mean(eval_rewards) if len(
+    eval_rewards) > 0 else episode_reward_sum)
