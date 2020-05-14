@@ -16,7 +16,8 @@ def process_frame(frame, shape=(84, 84)):
     Returns:
         The processed frame
     """
-    frame = frame.astype(np.uint8)  # cv2 requires np.uint8, other dtypes will not work
+    frame = frame.astype(
+        np.uint8)  # cv2 requires np.uint8, other dtypes will not work
 
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     frame = frame[34:34 + 160, :160]  # crop image
@@ -58,7 +59,8 @@ class GameWrapper:
                 self.env.step(1)
 
         # For the initial state, we stack the first frame four times
-        self.state = np.repeat(process_frame(self.frame), self.history_length, axis=2)
+        self.state = np.repeat(process_frame(self.frame),
+                               self.history_length, axis=2)
 
     def step(self, action: int, render_mode: Literal['human', 'rgb_array'] = None):
         """

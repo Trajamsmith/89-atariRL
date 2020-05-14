@@ -1,8 +1,8 @@
-from atari.config import *
-from atari.game_wrapper import GameWrapper
-from atari.model.dqn_architecture import build_q_network
-from atari.model.replay_buffer import ReplayBuffer
-from atari.model.agent import Agent
+from config import *
+from game_wrapper import GameWrapper
+from model.dqn_architecture import build_q_network
+from model.replay_buffer import ReplayBuffer
+from model.agent import Agent
 
 import numpy as np
 import tensorflow as tf
@@ -68,7 +68,8 @@ try:
                     action = agent.get_action(frame_number, game_wrapper.state)
 
                     # Take step
-                    processed_frame, reward, terminal, life_lost = game_wrapper.step(action)
+                    processed_frame, reward, terminal, life_lost = game_wrapper.step(
+                        action)
                     frame_number += 1
                     epoch_frame += 1
                     episode_reward_sum += reward
@@ -100,8 +101,10 @@ try:
                 if len(rewards) % 10 == 0:
                     # Write to TensorBoard
                     if WRITE_TENSORBOARD:
-                        tf.summary.scalar('Reward', np.mean(rewards[-10:]), frame_number)
-                        tf.summary.scalar('Loss', np.mean(loss_list[-100:]), frame_number)
+                        tf.summary.scalar('Reward', np.mean(
+                            rewards[-10:]), frame_number)
+                        tf.summary.scalar('Loss', np.mean(
+                            loss_list[-100:]), frame_number)
                         writer.flush()
 
                     print(
@@ -122,7 +125,8 @@ try:
                 # Breakout requires a "fire" action (action #1) to start the
                 # game each time a life is lost.
                 # Otherwise, the agent would sit around doing nothing.
-                action = 1 if life_lost else agent.get_action(frame_number, game_wrapper.state, evaluation=True)
+                action = 1 if life_lost else agent.get_action(
+                    frame_number, game_wrapper.state, evaluation=True)
 
                 # Step action
                 _, reward, terminal, life_lost = game_wrapper.step(action)
@@ -142,7 +146,8 @@ try:
             # Print score and write to Tensorboard
             print('Evaluation score:', final_score)
             if WRITE_TENSORBOARD:
-                tf.summary.scalar('Evaluation score', final_score, frame_number)
+                tf.summary.scalar('Evaluation score',
+                                  final_score, frame_number)
                 writer.flush()
 
             # Save model
