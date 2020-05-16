@@ -1,7 +1,7 @@
 import gym
 import numpy as np
 
-from lunar_lander.model.agent import Agent
+from model.agent import Agent
 
 # If false, load the saved model instead
 TRAIN_MODEL: bool = False

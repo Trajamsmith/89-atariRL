@@ -3,14 +3,14 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
-from lunar_lander.model.replay_buffer import ReplayBuffer
-from lunar_lander.model.dqn import build_dqn
+from model.replay_buffer import ReplayBuffer
+from model.dqn import build_dqn
 
 
 class Agent(object):
     def __init__(self, alpha: float, gamma: float, epsilon: float, batch_size: int,
                  input_dims: int, epsilon_dec: float = 0.998, epsilon_min: float = 0.01,
-                 mem_size: int = 1000000, fname: str = './lunar_lander/ll_model.h5'):
+                 mem_size: int = 1000000, fname: str = './ll_model.h5'):
         """
         Our Lunar Lander agent, using a pretty straightforward
         deep Q network with experience replay.
@@ -85,7 +85,8 @@ class Agent(object):
             return
 
         # Note that we're generally sampling non-sequential memories
-        state, action, reward, new_state, done = self.memory.sample_buffer(self.batch_size)
+        state, action, reward, new_state, done = self.memory.sample_buffer(
+            self.batch_size)
 
         # Working with the one-hot encoding
         action_values = np.array(self.action_space, dtype=np.int8)
@@ -106,7 +107,8 @@ class Agent(object):
         batch_index = np.arange(self.batch_size, dtype=np.int32)
 
         # Here's our version of the Bellman equation
-        q_target[batch_index, action_indices] = reward + self.gamma * np.max(q_next, axis=1) * done
+        q_target[batch_index, action_indices] = reward + \
+            self.gamma * np.max(q_next, axis=1) * done
 
         # Update our parameters: q_target is our validation
         history = self.q_eval.fit(x=state, y=q_target, verbose=0)
@@ -125,7 +127,8 @@ class Agent(object):
         """
         with self.summary_writer.as_default():
             tf.summary.scalar('episode reward', reward, step=episode)
-            tf.summary.scalar('running avg reward(100)', avg_rewards, step=episode)
+            tf.summary.scalar('running avg reward(100)',
+                              avg_rewards, step=episode)
             tf.summary.scalar('average loss', avg_losses, step=episode)
 
     def save_model(self):
